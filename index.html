@@ -3,76 +3,207 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Standard Cipher — Enkripsi AES-GCM</title>
+<title>Standard Cipher — AES-GCM Encryption</title>
+
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
 <style>
-  :root{
-    --bg:#f4f7fb; --card:#ffffff; --primary:#0abf9b; --muted:#6b7280; --danger:#ef4444; --text:#0f172a; --glass: rgba(15,23,42,0.04)
-  }
-  *{box-sizing:border-box}
-  body{
-    margin:0;font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial;
-    color:var(--text);
-    background:linear-gradient(135deg,#f7fafc,#eef2f7,#f9fafc);
-    animation:bgShift 12s ease-in-out infinite alternate;
-    padding:20px;display:flex;align-items:center;justify-content:center;
-  }
-  @keyframes bgShift{0%{background-position:0 0;}100%{background-position:100% 100%;}}
+/* -------------------------
+   THEME VARIABLES (LIGHT)
+--------------------------*/
+:root {
+  --bg: #f4f7fb;
+  --card: #ffffff;
+  --text: #0f172a;
+  --muted: #6b7280;
+  --primary: #0abf9b;
+  --danger: #ef4444;
+  --border: #e5e9f1;
+  --glass: rgba(15,23,42,0.04);
+  --input-bg: #fbfdfe;
+}
 
-  .container{width:100%;max-width:980px;background:var(--card);border-radius:12px;
-    box-shadow:0 8px 30px rgba(16,24,40,0.08);overflow:hidden;border:1px solid var(--glass)}
+/* -------------------------
+   DARK MODE VARIABLES
+--------------------------*/
+.dark {
+  --bg: #0b0f14;
+  --card: #141b24;
+  --text: #e6edf3;
+  --muted: #939ba7;
+  --primary: #0adfb0;
+  --danger: #ff5b5b;
+  --border: #1f2937;
+  --glass: rgba(255,255,255,0.05);
+  --input-bg: #1a222d;
+}
 
-  header{padding:20px 24px}
-  h1{margin:0;font-size:20px;font-weight:700}
-  p.desc{margin:6px 0 0;color:var(--muted);font-size:13px}
+/* -------------------------
+   GLOBAL STYLE
+--------------------------*/
+body {
+  margin:0;
+  padding:20px;
+  font-family:Inter,system-ui,-apple-system,'Segoe UI';
+  background:var(--bg);
+  color:var(--text);
+  display:flex;
+  justify-content:center;
+  min-height:100vh;
+}
 
-  .content{display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:20px}
-  @media(max-width:900px){.content{grid-template-columns:1fr}}
+/* Container */
+.container {
+  width:100%;
+  max-width:980px;
+  background:var(--card);
+  border-radius:14px;
+  border:1px solid var(--border);
+  box-shadow:0 8px 30px rgba(0,0,0,0.08);
+  overflow:hidden;
+}
 
-  label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
-  textarea,input{width:100%;padding:12px;border-radius:8px;border:1px solid #e6eef6;background:#fbfdfe;font-size:14px}
-  textarea{min-height:140px;resize:vertical}
+/* Header */
+header {
+  padding:20px 24px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+h1 { margin:0; font-size:19px; font-weight:700; }
+.desc { margin:4px 0 0; font-size:13px; color:var(--muted); }
 
-  .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+/* Dark mode toggle */
+.toggle-mode {
+  cursor:pointer;
+  background:var(--input-bg);
+  border:1px solid var(--border);
+  padding:8px 12px;
+  border-radius:8px;
+  font-size:13px;
+  user-select:none;
+}
 
-  .btn{background:var(--primary);color:#fff;padding:10px 14px;border-radius:10px;border:none;cursor:pointer;font-weight:600}
-  .btn.ghost{background:transparent;color:var(--text);border:1px solid #e6eef6}
-  .btn.danger{background:var(--danger);color:#fff}
+/* Content grid */
+.content {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+  padding:20px;
+}
+@media(max-width:900px){
+  .content { grid-template-columns:1fr; }
+}
 
-  .meter{height:8px;background:#eef2f7;border-radius:6px;margin-top:6px}
-  .meter div{height:100%;width:0%;background:linear-gradient(90deg,#f59e0b,#10b981)}
+/* Inputs */
+label { font-size:13px; margin-bottom:6px; color:var(--muted); display:block; }
 
-  .status{font-size:13px;color:var(--muted)}
-  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#111827;color:#fff;padding:10px 14px;border-radius:8px;display:none;z-index:999}
+textarea, input {
+  width:100%;
+  padding:12px;
+  border-radius:8px;
+  background:var(--input-bg);
+  border:1px solid var(--border);
+  color:var(--text);
+  font-size:14px;
+}
+textarea { min-height:140px; resize:vertical; }
+
+/* Buttons */
+.btn {
+  background:var(--primary);
+  color:#fff;
+  border:none;
+  padding:10px 14px;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:600;
+}
+.btn.ghost {
+  background:transparent;
+  border:1px solid var(--border);
+  color:var(--text);
+}
+.btn.danger {
+  background:var(--danger);
+  color:#fff;
+}
+
+/* Controls group */
+.controls {
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:14px;
+}
+
+/* Password strength */
+.meter {
+  height:8px;
+  border-radius:6px;
+  background:#ced4de20;
+  margin-top:6px;
+}
+.meter div {
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,#ff6262,#f59e0b,#10b981);
+  border-radius:6px;
+}
+
+/* Status / toast */
+.status { font-size:13px; color:var(--muted); }
+
+.toast {
+  position:fixed;
+  left:50%;
+  transform:translateX(-50%);
+  bottom:24px;
+  background:#111827;
+  color:white;
+  padding:10px 14px;
+  border-radius:8px;
+  display:none;
+  z-index:999;
+  
+}
 </style>
 </head>
-<body>
-  <div class="container" role="application">
+
+<body class="">
+  <div class="container">
     <header>
-      <h1>Standard Cipher — Enkripsi & Dekripsi</h1>
-      <p class="desc">AES-256-GCM dengan PBKDF2. Semua proses berjalan di browser — tidak ada yang dikirim ke server.</p>
+      <div>
+        <h1>Standard Cipher — AES-256-GCM</h1>
+        <p class="desc">Semua proses 100% offline, aman, dan private.</p>
+      </div>
+
+      <div id="toggleMode" class="toggle-mode">🌙 Mode Gelap</div>
     </header>
 
     <section class="content">
+      <!-- LEFT SIDE (PLAINTEXT & ENCRYPT) -->
       <div>
         <label for="plaintext">Pesan (Plaintext)</label>
-        <textarea id="plaintext" placeholder="Tulis pesan..."></textarea>
+        <textarea id="plaintext" placeholder="Tulis pesan yang ingin dienkripsi..."></textarea>
 
-        <label for="password" style="margin-top:12px">Password</label>
-        <input id="password" type="text" placeholder="Gunakan password kuat atau generate" autocomplete="off" />
+        <label for="password" style="margin-top:14px;">Password</label>
+        <input id="password" type="text" placeholder="Gunakan password yang kuat..." autocomplete="off" />
+
         <div class="meter"><div id="pwBar"></div></div>
 
-        <label for="iter" style="margin-top:12px">Iterations</label>
-        <input id="iter" type="number" value="250000" min="1000" step="1000" />
+        <label for="iter" style="margin-top:14px;">Iterations PBKDF2</label>
+        <input id="iter" type="number" value="250000" min="50000" step="5000" />
 
         <div class="controls">
           <button id="encryptBtn" class="btn">Enkripsi →</button>
-          <button id="genBtn" class="btn ghost">Generate Password</button>
+          <button id="genStrongBtn" class="btn ghost">Generate Strong</button>
           <button id="exportPlainBtn" class="btn ghost">Export .txt</button>
           <button id="clearAllBtn" class="btn danger">Hapus Semua</button>
         </div>
       </div>
 
+      <!-- RIGHT SIDE (CIPHERTEXT & DECRYPT) -->
       <div>
         <label for="ciphertext">Ciphertext (Base64)</label>
         <textarea id="ciphertext" placeholder="Hasil enkripsi muncul di sini..."></textarea>
@@ -81,10 +212,11 @@
           <button id="copyCipherBtn" class="btn ghost">Salin</button>
           <button id="saveCipherBtn" class="btn ghost">Simpan .txt</button>
           <button id="loadCipherBtn" class="btn ghost">Muat .txt</button>
+          <button id="shareLinkBtn" class="btn ghost">Share Link</button>
         </div>
 
-        <label for="decryptPassword" style="margin-top:12px">Password untuk Dekripsi</label>
-        <input id="decryptPassword" type="text" placeholder="Isi password (atau kosong untuk pakai yang atas)" />
+        <label for="decryptPassword" style="margin-top:14px;">Password untuk Dekripsi</label>
+        <input id="decryptPassword" type="text" placeholder="Isi password (atau kosong untuk gunakan di atas)" />
 
         <div class="controls">
           <button id="decryptBtn" class="btn">← Dekripsi</button>
@@ -92,8 +224,9 @@
         </div>
       </div>
 
+      <!-- FOOTER STATUS -->
       <div class="full">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
           <div class="muted">Format: Base64(salt16 || iv12 || ciphertext)</div>
           <div id="status" class="status">Ready</div>
         </div>
@@ -102,101 +235,271 @@
   </div>
 
   <div id="toast" class="toast"></div>
-
 <script>
+// Helper
 const $ = id => document.getElementById(id);
-const toast = (m,t=2500)=>{const el=$('toast');el.textContent=m;el.style.display='block';clearTimeout(el._t);el._t=setTimeout(()=>el.style.display='none',t)};
-const setStatus = m => $('status').textContent=m;
 
-const bufToB64 = b => btoa(String.fromCharCode(...new Uint8Array(b)));
-const b64ToBuf = b64 => Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
-
-async function deriveKey(pw,salt,iter){
-  const enc=new TextEncoder();
-  const baseKey=await crypto.subtle.importKey('raw',enc.encode(pw),{name:'PBKDF2'},false,['deriveKey']);
-  return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:iter,hash:'SHA-512'},baseKey,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
-}
-
-async function encryptText(pt,pw,iter){
-  const salt=crypto.getRandomValues(new Uint8Array(16));
-  const iv=crypto.getRandomValues(new Uint8Array(12));
-  const key=await deriveKey(pw,salt,iter);
-  const encoded=new TextEncoder().encode(pt);
-  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,encoded);
-  const out=new Uint8Array(salt.length+iv.length+ct.byteLength);
-  out.set(salt,0); out.set(iv,16); out.set(new Uint8Array(ct),28);
-  return bufToB64(out.buffer);
-}
-
-async function decryptText(data,pw,iter){
-  const buf=b64ToBuf(data);
-  if(buf.length<29) throw new Error('Data rusak');
-  const salt=buf.slice(0,16); const iv=buf.slice(16,28); const ct=buf.slice(28);
-  const key=await deriveKey(pw,salt,iter);
-  const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct);
-  return new TextDecoder().decode(plain);
-}
-
-async function busy(btn,fn){
-  const all=document.querySelectorAll('button'); all.forEach(b=>b.disabled=true);
-  const txt=btn.textContent; btn.textContent=txt+'...';
-  try{return await fn();} finally{all.forEach(b=>b.disabled=false); btn.textContent=txt;}
-}
-
-$('encryptBtn').onclick=()=>busy($('encryptBtn'),async()=>{
-  const pt=$('plaintext').value.trim();
-  const pw=$('password').value.trim();
-  const iter=parseInt($('iter').value)||250000;
-  if(!pt) return setStatus('Isi pesan dulu');
-  if(pw.length<6) return setStatus('Password lemah');
-  const out=await encryptText(pt,pw,iter);
-  $('ciphertext').value=out;
-  toast('Enkripsi berhasil'); setStatus('Ciphertext siap');
-});
-
-$('decryptBtn').onclick=()=>busy($('decryptBtn'),async()=>{
-  const ct=$('ciphertext').value.trim();
-  const pw=$('decryptPassword').value.trim()||$('password').value.trim();
-  const iter=parseInt($('iter').value)||250000;
-  if(!ct) return setStatus('Masukkan ciphertext');
-  if(!pw) return setStatus('Password diperlukan');
-  try{
-    const pt=await decryptText(ct,pw,iter);
-    $('plaintext').value=pt;
-    toast('Dekripsi berhasil'); setStatus('Selesai');
-  }catch(e){ setStatus('Dekripsi gagal'); toast('Password salah / data rusak'); }
-});
-
-$('copyCipherBtn').onclick=async()=>{const t=$('ciphertext').value;if(t){await navigator.clipboard.writeText(t);toast('Tersalin');}};
-$('copyPlainBtn').onclick=async()=>{const t=$('plaintext').value;if(t){await navigator.clipboard.writeText(t);toast('Plaintext tersalin');}};
-
-$('saveCipherBtn').onclick=()=>{
-  const t=$('ciphertext').value;if(!t) return;
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([t])); a.download='ciphertext.txt'; a.click();
+// Toast
+const toast = (msg, time = 2500) => {
+  const t = $('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  clearTimeout(t._tm);
+  t._tm = setTimeout(() => t.style.display = 'none', time);
 };
 
-$('loadCipherBtn').onclick=()=>{
-  const i=document.createElement('input'); i.type='file'; i.accept='.txt';
-  i.onchange=e=>{const f=e.target.files[0]; if(!f)return;const r=new FileReader();r.onload=()=>$('ciphertext').value=r.result; r.readAsText(f);}    
-  i.click();
+// Status
+const setStatus = msg => $('status').textContent = msg;
+
+// Base64 Helpers
+const bufToB64 = buf => btoa(String.fromCharCode(...new Uint8Array(buf)));
+const b64ToBuf = b64 => Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+
+// Derive key with PBKDF2
+async function deriveKey(password, salt, iter) {
+  const enc = new TextEncoder();
+  const baseKey = await crypto.subtle.importKey(
+    "raw", enc.encode(password),
+    { name: "PBKDF2" }, false, ["deriveKey"]
+  );
+  return crypto.subtle.deriveKey(
+    { name: "PBKDF2", salt, iterations: iter, hash: "SHA-512" },
+    baseKey, { name: "AES-GCM", length: 256 },
+    false, ["encrypt", "decrypt"]
+  );
+}
+
+// Encrypt text
+async function encryptText(plaintext, password, iter) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv   = crypto.getRandomValues(new Uint8Array(12));
+  const key  = await deriveKey(password, salt, iter);
+  const data = new TextEncoder().encode(plaintext);
+
+  const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, data);
+
+  const out = new Uint8Array(16 + 12 + ct.byteLength);
+  out.set(salt, 0);
+  out.set(iv, 16);
+  out.set(new Uint8Array(ct), 28);
+  return bufToB64(out);
+}
+
+// Decrypt text
+async function decryptText(b64, password, iter) {
+  const buf = b64ToBuf(b64);
+  if (buf.length < 29) throw new Error("Ciphertext invalid");
+
+  const salt = buf.slice(0, 16);
+  const iv   = buf.slice(16, 28);
+  const ct   = buf.slice(28);
+
+  const key = await deriveKey(password, salt, iter);
+  const pt  = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ct);
+
+  return new TextDecoder().decode(pt);
+}
+
+// Busy wrapper (disable all buttons while running)
+async function busy(btn, fn) {
+  const all = document.querySelectorAll('button');
+  all.forEach(b => b.disabled = true);
+  const old = btn.textContent;
+  btn.textContent = old + "...";
+  try {
+    return await fn();
+  } finally {
+    btn.textContent = old;
+    all.forEach(b => b.disabled = false);
+  }
+}
+
+/* ======================================================
+   STRONG PASSWORD GENERATOR (32–64 chars)
+======================================================*/
+$('genStrongBtn').onclick = () => {
+  const chars =
+    "abcdefghijklmnopqrstuvwxyz" +
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
+    "0123456789" +
+    "!@#$%^&*()_+-=[]{}|;:,.<>/?";
+
+  const length = 32 + Math.floor(Math.random() * 32); // 32–64 chars
+  let pw = "";
+  for (let i = 0; i < length; i++) {
+    pw += chars[Math.floor(Math.random() * chars.length)];
+  }
+
+  $('password').value = pw;
+  $('decryptPassword').value = pw;
+  updatePwMeter();
+  toast("Strong password dibuat (" + length + " chars)");
 };
 
-$('exportPlainBtn').onclick=()=>{
-  const t=$('plaintext').value;if(!t)return;
-  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([t])); a.download='plaintext.txt'; a.click();
+/* ======================================================
+   PASSWORD STRENGTH METER
+======================================================*/
+function updatePwMeter() {
+  const v = $('password').value;
+  let s = 0;
+  if (v.length >= 12) s += 40;
+  if (/[A-Z]/.test(v)) s += 20;
+  if (/[0-9]/.test(v)) s += 20;
+  if (/[^A-Za-z0-9]/.test(v)) s += 20;
+  $('pwBar').style.width = Math.min(100, s) + "%";
+}
+$('password').addEventListener("input", updatePwMeter);
+
+/* ======================================================
+   DARK MODE TOGGLE
+======================================================*/
+function applyTheme(mode) {
+  if (mode === "dark") {
+    document.body.classList.add("dark");
+    $('toggleMode').textContent = "☀️ Mode Terang";
+  } else {
+    document.body.classList.remove("dark");
+    $('toggleMode').textContent = "🌙 Mode Gelap";
+  }
+}
+
+$('toggleMode').onclick = () => {
+  const newMode = document.body.classList.contains("dark") ? "light" : "dark";
+  localStorage.setItem("cipher-theme", newMode);
+  applyTheme(newMode);
 };
 
-$('clearAllBtn').onclick=()=>{
-  if(!confirm('Hapus semua isi?')) return;
-  $('plaintext').value='';$('ciphertext').value='';$('password').value='';$('decryptPassword').value='';$('pwBar').style.width='0%'; setStatus('Bersih'); toast('Semua terhapus');
+// Load theme
+applyTheme(localStorage.getItem("cipher-theme") || "light");
+
+/* ======================================================
+   ENCRYPT
+======================================================*/
+$('encryptBtn').onclick = () =>
+  busy($('encryptBtn'), async () => {
+    const pt = $('plaintext').value.trim();
+    const pw = $('password').value.trim();
+    const iter = parseInt($('iter').value) || 250000;
+
+    if (!pt) return setStatus("Isi pesan terlebih dahulu");
+    if (pw.length < 6) return setStatus("Password terlalu lemah");
+
+    setStatus("Mengenkripsi...");
+    const ct = await encryptText(pt, pw, iter);
+    $('ciphertext').value = ct;
+    setStatus("Enkripsi berhasil");
+    toast("Enkripsi Berhasil");
+  });
+
+/* ======================================================
+   DECRYPT
+======================================================*/
+$('decryptBtn').onclick = () =>
+  busy($('decryptBtn'), async () => {
+    const ct = $('ciphertext').value.trim();
+    const pw = $('decryptPassword').value.trim() || $('password').value.trim();
+    const iter = parseInt($('iter').value) || 250000;
+
+    if (!ct) return setStatus("Masukkan ciphertext dulu");
+    if (!pw) return setStatus("Password dibutuhkan");
+
+    try {
+      setStatus("Mendekripsi...");
+      const pt = await decryptText(ct, pw, iter);
+      $('plaintext').value = pt;
+      setStatus("Dekripsi berhasil");
+      toast("Dekripsi Berhasil");
+    } catch (e) {
+      setStatus("Dekripsi gagal");
+      toast("Password salah atau data rusak");
+    }
+  });
+
+/* ======================================================
+   SHARE LINK
+======================================================*/
+$('shareLinkBtn').onclick = () => {
+  const ct = $('ciphertext').value.trim();
+  if (!ct) return toast("Ciphertext kosong");
+
+  const encoded = encodeURIComponent(ct);
+  const url = `${location.origin}${location.pathname}?ct=${encoded}`;
+
+  navigator.clipboard.writeText(url);
+  toast("Link tersalin (password tidak termasuk)");
 };
 
-$('password').addEventListener('input',()=>{
-  const v=$('password').value; let s=0;
-  if(v.length>=12)s+=40; if(/[A-Z]/.test(v))s+=20; if(/[0-9]/.test(v))s+=20; if(/[^A-Za-z0-9]/.test(v))s+=20;
-  $('pwBar').style.width=Math.min(100,s)+'%';
-});
+/* ======================================================
+   COPY / SAVE / LOAD / EXPORT
+======================================================*/
+$('copyCipherBtn').onclick = async () => {
+  const t = $('ciphertext').value;
+  if (!t) return;
+  await navigator.clipboard.writeText(t);
+  toast("Ciphertext tersalin");
+};
+$('copyPlainBtn').onclick = async () => {
+  const t = $('plaintext').value;
+  if (!t) return;
+  await navigator.clipboard.writeText(t);
+  toast("Plaintext tersalin");
+};
+
+$('saveCipherBtn').onclick = () => {
+  const t = $('ciphertext').value;
+  if (!t) return;
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([t]));
+  a.download = "ciphertext.txt";
+  a.click();
+};
+
+$('loadCipherBtn').onclick = () => {
+  const f = document.createElement("input");
+  f.type = "file";
+  f.accept = ".txt";
+  f.onchange = e => {
+    const file = e.target.files[0];
+    const r = new FileReader();
+    r.onload = () => $('ciphertext').value = r.result.trim();
+    r.readAsText(file);
+  };
+  f.click();
+};
+
+$('exportPlainBtn').onclick = () => {
+  const t = $('plaintext').value;
+  if (!t) return;
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([t]));
+  a.download = "plaintext.txt";
+  a.click();
+};
+
+/* ======================================================
+   CLEAR ALL
+======================================================*/
+$('clearAllBtn').onclick = () => {
+  if (!confirm("Hapus semua isi?")) return;
+  $('plaintext').value = "";
+  $('ciphertext').value = "";
+  $('password').value = "";
+  $('decryptPassword').value = "";
+  $('pwBar').style.width = "0%";
+  setStatus("Bersih");
+  toast("Semua terhapus");
+};
+
+/* ======================================================
+   AUTO-LOAD FROM SHARE LINK
+======================================================*/
+(function () {
+  const params = new URLSearchParams(location.search);
+  if (params.has("ct")) {
+    $('ciphertext').value = params.get("ct");
+    toast("Ciphertext dimuat dari link");
+  }
+})();
 </script>
 </body>
 </html>
