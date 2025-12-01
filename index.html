@@ -1,1074 +1,221 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OBSIDIAN-Vault v7.3.1: QR Library Fix</title>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        /* --- THEME COLOR VARIABLES --- */
-        :root {
-            --primary-color: #00FFCC;
-            --secondary-color: #CC00FF;
-            --danger-color: #ff3333;
-            --warning-color: #ffae00;
-            --info-color: #00bfff;
-            --bg-color: #050508;
-            --main-bg-color: rgba(16, 18, 28, 0.85);
-            --section-bg-color: #141622;
-            --input-bg-color: #0A0A0F;
-            --text-color: #EAEAEA;
-            --subtle-text-color: #888;
-        }
-
-        .theme-red-alert {
-            --primary-color: #ff4d4d;
-            --secondary-color: #ffffff;
-            --danger-color: #ffae00;
-        }
-
-        .theme-blue-stealth {
-            --primary-color: #00bfff;
-            --secondary-color: #00e5ff;
-            --danger-color: #ffae00;
-        }
-
-        /* --- KEYFRAMES --- */
-        @keyframes blink {
-
-            0%,
-            100% {
-                caret-color: var(--primary-color);
-            }
-
-            50% {
-                caret-color: transparent;
-            }
-        }
-
-        @keyframes subtle-glow-pulse {
-
-            0%,
-            100% {
-                box-shadow: 0 0 15px -5px var(--secondary-color);
-                border-color: var(--secondary-color);
-            }
-
-            50% {
-                box-shadow: 0 0 25px -5px var(--secondary-color);
-                border-color: var(--secondary-color);
-            }
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes alert-glow {
-
-            0%,
-            100% {
-                box-shadow: 0 0 15px var(--danger-color);
-            }
-
-            50% {
-                box-shadow: 0 0 30px var(--danger-color);
-            }
-        }
-
-        @keyframes spin {
-            to {
-                transform: translate(-50%, -50%) rotate(360deg);
-            }
-        }
-
-        /* --- GENERAL STYLES --- */
-        body {
-            font-family: 'Fira Code', 'Courier New', monospace;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            overflow-x: hidden;
-            position: relative;
-        }
-
-        #starfield-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-        }
-
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-        }
-
-        header {
-            background: rgba(10, 10, 15, 0.8);
-            backdrop-filter: blur(5px);
-            padding: 1rem;
-            text-align: center;
-            border-bottom: 2px solid var(--primary-color);
-            box-shadow: 0 4px 25px -10px var(--primary-color);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        header h1 {
-            font-size: clamp(1.5em, 5vw, 2.5em);
-            color: var(--primary-color);
-            text-shadow: 0 0 12px var(--primary-color), 0 0 25px var(--primary-color);
-            margin: 0 0 0.5rem;
-            letter-spacing: 2px;
-        }
-
-        header .tagline {
-            font-size: clamp(0.9em, 2.5vw, 1.1em);
-            color: var(--secondary-color);
-            text-shadow: 0 0 8px var(--secondary-color);
-            margin: 0;
-        }
-
-        main {
-            flex-grow: 1;
-            max-width: 1000px;
-            width: 90%;
-            margin: 2rem auto;
-            padding: 1.5rem;
-            background: var(--main-bg-color);
-            backdrop-filter: blur(10px);
-            border-radius: 10px;
-            border: 1px solid var(--primary-color);
-            box-shadow: 0 0 30px -10px var(--primary-color);
-            animation: fadeIn 1s ease-out;
-            z-index: 10;
-        }
-
-        .section-container {
-            background-color: var(--section-bg-color);
-            padding: 1.5rem;
-            border-radius: 10px;
-            margin-bottom: 2rem;
-            border: 1px solid var(--secondary-color);
-            animation: subtle-glow-pulse 8s infinite ease-in-out;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .section-container h3 {
-            color: var(--primary-color);
-            text-align: center;
-            border-bottom: 1px dashed var(--primary-color);
-            padding-bottom: 1rem;
-            margin-top: 0;
-            margin-bottom: 1rem;
-            text-shadow: 0 0 8px var(--primary-color);
-            font-size: clamp(1.2em, 4vw, 1.5em);
-        }
-
-        .input-group,
-        .output-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .input-group label,
-        .output-group label {
-            color: var(--secondary-color);
-            font-size: 1.1em;
-            text-shadow: 0 0 4px var(--secondary-color);
-        }
-
-        .input-group label.subtle-label {
-            color: var(--subtle-text-color);
-            font-size: 0.9em;
-            text-shadow: none;
-            font-style: italic;
-        }
-
-        textarea,
-        input[type="password"],
-        input[type="text"],
-        input[type="number"] {
-            width: 100%;
-            padding: 1rem;
-            border: 1px solid var(--primary-color);
-            border-radius: 8px;
-            background-color: var(--input-bg-color);
-            color: var(--primary-color);
-            font-family: 'Fira Code', monospace;
-            font-size: 1em;
-            box-shadow: inset 0 0 8px -2px var(--primary-color);
-            outline: none;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        textarea {
-            min-height: 120px;
-            resize: vertical;
-        }
-
-        textarea:focus,
-        input:focus {
-            border-color: var(--secondary-color);
-            box-shadow: inset 0 0 10px -2px var(--secondary-color), 0 0 15px -5px var(--secondary-color);
-            animation: blink 1s step-end infinite;
-        }
-
-        .buttons-group {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        button {
-            background-color: var(--primary-color);
-            color: #000000;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 25px;
-            font-family: 'Fira Code', monospace;
-            font-size: 1em;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            box-shadow: 0 0 15px -5px var(--primary-color), 0 0 15px -5px var(--primary-color) inset;
-            transition: all 0.3s ease;
-            font-weight: bold;
-            position: relative;
-        }
-
-        button:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 0 25px -5px var(--secondary-color), 0 0 25px -5px var(--secondary-color) inset;
-            background-color: var(--secondary-color);
-            color: var(--text-color);
-        }
-
-        button:disabled {
-            background-color: #555;
-            color: var(--subtle-text-color);
-            cursor: not-allowed;
-            box-shadow: none;
-            transform: none;
-        }
-
-        button:disabled:hover {
-            transform: none;
-            background-color: #555;
-        }
-
-        button.danger {
-            background-color: var(--danger-color);
-            color: white;
-            box-shadow: 0 0 15px var(--danger-color);
-        }
-
-        button.danger:hover {
-            background-color: #ff0000;
-            box-shadow: 0 0 25px #ff0000;
-        }
-
-        /* GENERAL UI COMPONENTS (Loaders, Modals, etc) */
-        .output-result {
-            background-color: var(--input-bg-color);
-            padding: 1rem;
-            border: 1px solid var(--secondary-color);
-            border-radius: 8px;
-            min-height: 120px;
-            word-wrap: break-word;
-            white-space: pre-wrap;
-            color: var(--secondary-color);
-            box-shadow: inset 0 0 12px -2px var(--secondary-color);
-            transition: all 0.3s ease-out;
-            text-shadow: 0 0 8px var(--secondary-color);
-            position: relative;
-        }
-
-        .loading-spinner {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(255, 255, 255, 0.2);
-            border-left-color: var(--primary-color);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            animation: spin 1s linear infinite;
-        }
-
-        .output-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-
-        .output-actions button {
-            background: var(--input-bg-color);
-            color: var(--primary-color);
-            border: 1px solid var(--primary-color);
-            padding: 0.25rem 0.75rem;
-            font-size: 0.8em;
-            text-transform: none;
-            border-radius: 5px;
-        }
-
-        .message-box {
-            padding: 1rem;
-            border-radius: 8px;
-            text-align: center;
-            font-size: 1em;
-            display: none;
-            transition: all 0.3s ease-out;
-            border: 1px solid;
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 5000;
-            backdrop-filter: blur(5px);
-            width: 90%;
-            max-width: 500px;
-        }
-
-        .message-box.success {
-            background-color: rgba(0, 255, 204, 0.2);
-            color: var(--primary-color);
-            border-color: var(--primary-color);
-            box-shadow: 0 0 10px var(--primary-color);
-        }
-
-        .message-box.error {
-            background-color: rgba(255, 0, 0, 0.3);
-            color: var(--danger-color);
-            border-color: var(--danger-color);
-            box-shadow: 0 0 10px var(--danger-color);
-        }
-
-        .message-box.info {
-            background-color: rgba(0, 191, 255, 0.2);
-            color: var(--info-color);
-            border-color: var(--info-color);
-            box-shadow: 0 0 10px var(--info-color);
-        }
-
-        .message-box.warning {
-            background-color: rgba(255, 174, 0, 0.2);
-            color: var(--warning-color);
-            border-color: var(--warning-color);
-            box-shadow: 0 0 10px var(--warning-color);
-        }
-
-        .upload-label {
-            display: block;
-            width: 100%;
-            padding: 0.75rem 1.25rem;
-            background-color: var(--secondary-color);
-            color: white;
-            text-align: center;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: 0.3s ease;
-        }
-
-        .upload-label:hover {
-            background-color: var(--primary-color);
-            color: black;
-        }
-
-        .file-info {
-            text-align: center;
-            color: var(--subtle-text-color);
-            font-style: italic;
-            font-size: 0.9em;
-        }
-
-        .shard-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-        }
-
-        .shard-box {
-            background: var(--input-bg-color);
-            border: 1px solid #444;
-            padding: 0.75rem;
-            border-radius: 5px;
-        }
-
-        .shard-box label {
-            font-size: 0.9em;
-            color: var(--primary-color);
-        }
-
-        .shard-box textarea {
-            height: 80px;
-            font-size: 0.9em;
-        }
-
-        .dms-status {
-            padding: 1rem;
-            border-radius: 8px;
-            text-align: center;
-            transition: all 0.5s ease;
-        }
-
-        .dms-status.armed {
-            background: #332200;
-            border: 1px solid var(--warning-color);
-            color: var(--warning-color);
-        }
-
-        .dms-status.disarmed {
-            background: #002211;
-            border: 1px solid var(--primary-color);
-            color: var(--primary-color);
-        }
-
-        .dms-status.triggered {
-            background: #330000;
-            border: 1px solid var(--danger-color);
-            color: var(--danger-color);
-            animation: alert-glow 2s infinite;
-        }
-
-        #dmsCountdown {
-            font-weight: bold;
-            letter-spacing: 2px;
-        }
-
-        /* --- ULTIMATE EDITION COMPONENTS --- */
-        #network-simulator {
-            position: fixed;
-            bottom: 10px;
-            left: 10px;
-            width: 250px;
-            height: 150px;
-            background: rgba(10, 10, 15, 0.7);
-            backdrop-filter: blur(3px);
-            border: 1px solid var(--primary-color);
-            border-radius: 8px;
-            color: var(--primary-color);
-            font-size: 0.7em;
-            padding: 8px;
-            overflow: hidden;
-            z-index: 1;
-            box-shadow: 0 0 15px -5px var(--primary-color);
-            opacity: 0.7;
-        }
-
-        #network-simulator pre {
-            margin: 0;
-            white-space: pre;
-            text-overflow: ellipsis;
-            overflow: hidden;
-        }
-
-        .entropy-display {
-            font-size: 0.9em;
-            color: var(--subtle-text-color);
-            margin-top: 5px;
-            text-align: right;
-        }
-
-        .entropy-display span.strong {
-            color: var(--primary-color);
-        }
-
-        .entropy-display span.medium {
-            color: var(--warning-color);
-        }
-
-        .entropy-display span.weak {
-            color: var(--danger-color);
-        }
-
-        .duress-protocol {
-            border: 1px dashed var(--warning-color);
-            border-radius: 8px;
-            padding: 1rem;
-            margin-top: 1rem;
-            display: none;
-        }
-
-        .duress-protocol.active {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            animation: fadeIn 0.5s;
-        }
-
-        #duressToggle {
-            color: var(--warning-color);
-            cursor: pointer;
-            user-select: none;
-        }
-
-        #command-palette {
-            display: none;
-            position: fixed;
-            z-index: 9999;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(5px);
-        }
-
-        #command-palette-modal {
-            position: absolute;
-            top: 20%;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
-            max-width: 600px;
-            background-color: var(--section-bg-color);
-            border: 1px solid var(--primary-color);
-            border-radius: 10px;
-            box-shadow: 0 0 30px var(--primary-color);
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        #command-input {
-            width: 100%;
-            padding: 1rem;
-            font-size: 1.2em;
-            background: transparent;
-            border: none;
-            border-bottom: 1px solid var(--primary-color);
-            color: var(--primary-color);
-            outline: none;
-        }
-
-        #command-results {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        #command-results li {
-            padding: 0.75rem 1rem;
-            cursor: pointer;
-            border-bottom: 1px solid #2a2c3a;
-        }
-
-        #command-results li:last-child {
-            border-bottom: none;
-        }
-
-        #command-results li.selected,
-        #command-results li:hover {
-            background-color: var(--primary-color);
-            color: #000;
-        }
-
-        #command-results li small {
-            display: block;
-            color: var(--subtle-text-color);
-            margin-top: 4px;
-        }
-
-        #command-results li.selected small,
-        #command-results li:hover small {
-            color: #333;
-        }
-
-        kbd {
-            background-color: #333;
-            border: 1px solid #555;
-            border-radius: 3px;
-            padding: 2px 5px;
-            font-size: 0.9em;
-        }
-
-        .qr-modal {
-            display: none;
-            position: fixed;
-            z-index: 2000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(5px);
-        }
-
-        .qr-modal-content {
-            background-color: var(--section-bg-color);
-            margin: 15% auto;
-            padding: 20px;
-            border: 1px solid var(--primary-color);
-            width: 90%;
-            max-width: 300px;
-            border-radius: 10px;
-            text-align: center;
-        }
-
-        #qrCodeContainer {
-            background: white;
-            padding: 10px;
-            border-radius: 5px;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Encryptor — AES-GCM (PBKDF2)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#0b0b0f;--card:#11121a;--primary:#00FFCC;--muted:#9aa;--danger:#ff6666;--accent:#CC00FF;--text:#e9eef8}
+    body{font-family:'Fira Code',monospace;background:linear-gradient(180deg,#020207,#071021);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;margin:0}
+    .card{width:100%;max-width:920px;background:var(--card);border-radius:12px;padding:20px;box-shadow:0 8px 40px rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.03)}
+    h1{margin:0 0 8px;font-size:20px;color:var(--primary)}
+    p.lead{margin:.25rem 0 1rem;color:var(--muted)}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    label{font-size:12px;color:var(--accent);display:block;margin-bottom:6px}
+    textarea,input{width:100%;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,.04);background:#05050a;color:var(--primary);min-height:120px;font-family:inherit}
+    input[type="text"]{min-height:40px}
+    .row{display:flex;gap:8px;align-items:center}
+    button{background:var(--primary);color:#000;padding:10px 12px;border-radius:8px;border:none;cursor:pointer;font-weight:700}
+    button.ghost{background:transparent;border:1px solid rgba(255,255,255,.06);color:var(--text)}
+    .muted{color:var(--muted);font-size:12px}
+    .full{grid-column:1/-1}
+    .actions{display:flex;gap:8px;justify-content:flex-end}
+    .notice{padding:8px;border-radius:6px;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.02);font-size:13px;color:var(--muted)}
+    .error{color:var(--danger);font-weight:700}
+    @media(max-width:760px){ .grid{grid-template-columns:1fr} }
+  </style>
 </head>
-
 <body>
-    <canvas id="starfield-bg"></canvas>
-    <div id="network-simulator"></div>
+  <div class="card" role="application" aria-labelledby="title">
+    <h1 id="title">Encryptor — AES-GCM (PBKDF2)</h1>
+    <p class="lead">Enkripsi & dekripsi teks di browser menggunakan PBKDF2 + AES-GCM 256. Tidak ada data yang dikirim ke server.</p>
 
-    <header>
-        <h1>OBSIDIAN-Vault v7.3.1: Stable</h1>
-        <p class="tagline">All Protocols Active. Maximum Security Engaged.</p>
-    </header>
+    <div class="grid">
+      <!-- Plaintext -->
+      <div>
+        <label for="plaintext">Plaintext (pesan asli)</label>
+        <textarea id="plaintext" placeholder="Ketik pesan yang mau dienkripsi..."></textarea>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <input id="password" type="text" placeholder="Password (gunakan password yang kuat)" />
+          <input id="iter" type="text" value="250000" style="width:110px;" title="Iterations (PBKDF2)" />
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button id="encryptBtn">Enkripsi →</button>
+          <button id="genBtn" class="ghost">Generate Random Password</button>
+          <div style="flex:1"></div>
+        </div>
+        <div style="margin-top:10px" class="muted">PBKDF2 iterations &rarr; default 250.000 (strong). Salt dan IV di-generate otomatis per enkripsi.</div>
+      </div>
 
-    <main>
-        <!-- Info -->
-        <section class="section-container">
-            <div class="file-info" style="font-style:normal;">
-                Tekan <kbd>Ctrl+P</kbd> atau <kbd>Cmd+P</kbd> untuk membuka Command Palette.
-            </div>
-        </section>
+      <!-- Ciphertext -->
+      <div>
+        <label for="ciphertext">Ciphertext (Base64)</label>
+        <textarea id="ciphertext" placeholder="Hasil enkripsi akan muncul di sini..."></textarea>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button id="copyCipherBtn" class="ghost">Salin Ciphertext</button>
+          <button id="clearCipherBtn" class="ghost">Bersihkan</button>
+        </div>
 
-        <!-- Main Cipher Tool -->
-        <section class="section-container">
-            <h3>Standard Cipher Protocol (AES-256-GCM)</h3>
-            <div class="input-group">
-                <label for="inputText">Teks Asli / Cipher (Base64)</label>
-                <textarea id="inputText" placeholder="Ketik pesan rahasia Anda di sini..."></textarea>
-            </div>
-            <div class="input-group">
-                <label for="password">Password Utama</label>
-                <input type="password" id="password" placeholder="Password untuk enkripsi/dekripsi...">
-                <div id="passwordEntropy" class="entropy-display">Entropy: 0 bits (Sangat Lemah)</div>
-            </div>
+        <hr style="margin:12px 0;border:none;border-top:1px dashed rgba(255,255,255,.03)">
+        <label for="decryptPassword">Password untuk dekripsi</label>
+        <input id="decryptPassword" type="text" placeholder="Masukkan password untuk dekripsi (sama seperti saat enkripsi)" />
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button id="decryptBtn">← Dekripsi</button>
+          <button id="copyPlainBtn" class="ghost">Salin Plaintext</button>
+        </div>
 
-            <label id="duressToggle">[+] Aktifkan Duress Protocol (Password Panik)</label>
-            <div id="duressProtocol" class="duress-protocol">
-                <div class="input-group">
-                    <label for="duressPassword">Duress Password (Password Panik)</label>
-                    <label class="subtle-label">Gunakan password ini jika Anda terpaksa membuka pesan.</label>
-                    <input type="password" id="duressPassword" placeholder="Password yang berbeda dari utama...">
-                </div>
-                <div class="input-group">
-                    <label for="decoyMessage">Pesan Palsu (Decoy)</label>
-                    <label class="subtle-label">Pesan ini akan muncul jika Duress Password digunakan.</label>
-                    <textarea id="decoyMessage" placeholder="Contoh: Rapat dengan klien besok jam 2 siang."
-                        style="height:80px;"></textarea>
-                </div>
-            </div>
+      </div>
 
-            <div class="buttons-group" style="margin-top:1.5rem;">
-                <button id="encodeButton">Enkripsi</button>
-                <button id="decodeButton">Dekripsi</button>
-                <button id="resetButton">Hapus</button>
-            </div>
-            <div class="output-group">
-                <label for="outputResult">Hasil</label>
-                <div id="outputResult" class="output-result"></div>
-                <div class="output-actions">
-                    <button id="qrOutputBtn">QR Code</button>
-                    <button id="copyOutputBtn">Salin</button>
-                    <button id="downloadOutputBtn">Unduh</button>
-                </div>
-            </div>
-        </section>
+      <div class="full">
+        <div style="display:flex;gap:12px;align-items:center">
+          <div class="notice" style="flex:1">
+            <strong>Format:</strong> output adalah Base64 dari gabungan <code>salt(16 bytes) || iv(12 bytes) || ciphertext</code>.
+            <div class="muted">Saat dekripsi, fungsi memisah salt/iv dari data. Jangan modifikasi hasil ciphertext jika ingin berhasil didekripsi.</div>
+          </div>
+          <div style="width:200px;text-align:right">
+            <div id="status" class="muted">Ready</div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-        <!-- Aegis Protocol -->
-        <section class="section-container">
-            <h3>Aegis Protocol: Encrypted Narrative</h3>
-            <div class="input-group">
-                <label for="aegisInput">Pesan Rahasia (Untuk disamarkan)</label>
-                <textarea id="aegisInput" placeholder="Pesan yang akan diubah menjadi puisi..."></textarea>
-            </div>
-            <div class="input-group">
-                <label for="aegisStyle">Gaya Narasi (Untuk AI)</label>
-                <input type="text" id="aegisStyle" placeholder="Contoh: Surat cinta puitis, fragmen buku harian ksatria...">
-            </div>
-            <div class="input-group">
-                <label for="aegisPassword">Password Aegis</label>
-                <input type="password" id="aegisPassword" placeholder="Password untuk mengunci & membuka narasi...">
-            </div>
-             <div class="input-group">
-                <label for="aegisApiKey">Gemini API Key</label>
-                <label class="subtle-label">Dapatkan dari Google AI Studio. Key tidak disimpan, aman digunakan.</label>
-                <input type="password" id="aegisApiKey" placeholder="Masukkan API Key Anda di sini...">
-            </div>
-            <div class="buttons-group">
-                <button id="aegisGenerateAndEncryptButton">Samarkan & Enkripsi</button>
-                <button id="aegisDecryptButton">Dekripsi Narasi</button>
-                <button id="aegisResetButton" class="danger">Hapus</button>
-            </div>
-            <div class="output-group">
-                <label>Hasil / Ciphertext</label>
-                <div id="aegisOutput" class="output-result">Hasil narasi terenkripsi atau teks terdekripsi akan muncul di sini. Untuk dekripsi, tempel cipher di sini.</div>
-                <div class="output-actions">
-                    <button id="copyAegisBtn">Salin</button>
-                </div>
-            </div>
-        </section>
+  </div>
 
+<script>
+/*
+  Simple client-side encryptor (PBKDF2 + AES-GCM)
+  - salt: 16 bytes
+  - iv: 12 bytes
+  - PBKDF2 iterations: adjustable (default 250000)
+  - AES: AES-GCM 256
+  - Output: base64(salt||iv||ciphertext)
+*/
 
-        <!-- Chimera Protocol, Hydra, Thanatos, Settings... -->
-        <!-- (These sections remain unchanged) -->
+const $ = id => document.getElementById(id);
+const status = text => { $('status').textContent = text; };
 
-    </main>
-    
-    <footer
-        style="text-align:center; padding:15px; color: #666; background:rgba(0,0,0,0.8); border-top: 1px solid #333; z-index:10;">
-        <p>Ultimate Edition v7.3.1 | For Calestara by WuLyena & Gemini</p>
-    </footer>
+function bufferToBase64(buffer){
+  return btoa(String.fromCharCode.apply(null, new Uint8Array(buffer)));
+}
+function base64ToBuffer(base64){
+  return Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+}
 
-    <!-- *** IMPORTANT CHANGE HERE *** -->
-    <!-- Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodegen/1.8.0/qrcodegen.min.js"></script>
+async function deriveKey(password, salt, iterations = 250000){
+  const enc = new TextEncoder();
+  const baseKey = await crypto.subtle.importKey('raw', enc.encode(password), { name: 'PBKDF2' }, false, ['deriveKey']);
+  const key = await crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: salt, iterations: iterations, hash: 'SHA-512' },
+    baseKey,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt','decrypt']
+  );
+  return key;
+}
 
-    <!-- MAIN APPLICATION SCRIPT -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const vaultApp = {
-                // ... (Core properties: els, state, utilities, cryptoCore)
-                 els: {},
-                state: {
-                    isDuressActive: false,
-                    commandPaletteOpen: false,
-                    commandFiltered: [],
-                    commandSelectedIndex: 0,
-                    dmsInterval: null,
-                    starfieldAnimationId: null,
-                    loadedFile: null,
-                },
+async function encryptText(plainText, password, iterations){
+  // generate salt & iv
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await deriveKey(password, salt, iterations);
+  const enc = new TextEncoder();
+  const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, key, enc.encode(plainText));
+  // combined: salt || iv || ciphertext
+  const combined = new Uint8Array(salt.length + iv.length + ct.byteLength);
+  combined.set(salt, 0);
+  combined.set(iv, salt.length);
+  combined.set(new Uint8Array(ct), salt.length + iv.length);
+  return bufferToBase64(combined.buffer);
+}
 
-                // --- Core Utilities ---
-                showMessage(message, type = 'info', duration = 4000) {
-                    const el = this.els.messageBox;
-                    if (!el) return;
-                    if (el.timer) clearTimeout(el.timer);
-                    el.textContent = message;
-                    el.className = `message-box ${type}`;
-                    el.style.display = 'block';
-                    el.style.opacity = 1;
-                    el.timer = setTimeout(() => {
-                        el.style.opacity = 0;
-                        setTimeout(() => el.style.display = 'none', 300);
-                    }, duration);
-                },
-                copyToClipboard(text, buttonElement) {
-                    if (!text || text.trim() === '' || text.startsWith("Hasil narasi")) {
-                        this.showMessage("Tidak ada teks untuk disalin.", "error");
-                        return;
-                    }
-                    const textArea = document.createElement("textarea");
-                    textArea.value = text;
-                    textArea.style.position = "fixed"; 
-                    textArea.style.left = "-9999px";
-                    document.body.appendChild(textArea);
-                    textArea.focus();
-                    textArea.select();
-                    try {
-                        document.execCommand('copy');
-                        const originalText = buttonElement.textContent;
-                        buttonElement.textContent = 'Tersalin!';
-                        buttonElement.disabled = true;
-                        setTimeout(() => {
-                            buttonElement.textContent = originalText;
-                            buttonElement.disabled = false;
-                        }, 2000);
-                    } catch (err) {
-                        this.showMessage("Gagal menyalin. Coba salin manual.", "error");
-                    }
-                    document.body.removeChild(textArea);
-                },
-                showLoading(element) {
-                    if (!element) return;
-                    this.hideLoading(element);
-                    const spinner = document.createElement('div');
-                    spinner.className = 'loading-spinner';
-                    element.innerHTML = '';
-                    element.appendChild(spinner);
-                },
-                hideLoading(element) {
-                    if (!element) return;
-                    const spinner = element.querySelector('.loading-spinner');
-                    if (spinner) spinner.remove();
-                },
-                animateDecryption(element, final_text) {
-                    if (!element) return;
-                    let i = 0;
-                    const chars = '!<>-_\\/[]{}—=+*^?#_';
-                    if (element.animationInterval) clearInterval(element.animationInterval);
-                    let currentText = Array.from({length: final_text.length}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-                    element.textContent = currentText;
-                    element.animationInterval = setInterval(() => {
-                        let newText = final_text.substring(0, i + 1) +
-                            Array.from({ length: final_text.length - i - 1 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-                        element.textContent = newText;
-                        i++;
-                        if (i >= final_text.length) {
-                            clearInterval(element.animationInterval);
-                            element.textContent = final_text;
-                            element.animationInterval = null;
-                        }
-                    }, 30);
-                },
-                cryptoCore: {
-                    bufferToBase64: (buffer) => btoa(String.fromCharCode.apply(null, new Uint8Array(buffer))),
-                    base64ToBuffer: (base64) => Uint8Array.from(atob(base64), c => c.charCodeAt(0)),
-                    getKey: async (password, salt) => {
-                        const enc = new TextEncoder();
-                        const baseKey = await window.crypto.subtle.importKey("raw", enc.encode(password), { name: "PBKDF2" }, false, ["deriveKey"]);
-                        return await window.crypto.subtle.deriveKey(
-                            { "name": "PBKDF2", "salt": salt, "iterations": 250000, "hash": "SHA-512" },
-                            baseKey, { "name": "AES-GCM", "length": 256 }, true, ["encrypt", "decrypt"]
-                        );
-                    },
-                    encryptSingle: async (data, password) => {
-                        const salt = window.crypto.getRandomValues(new Uint8Array(16));
-                        const iv = window.crypto.getRandomValues(new Uint8Array(12));
-                        const key = await vaultApp.cryptoCore.getKey(password, salt);
-                        const encodedData = (typeof data === 'string') ? new TextEncoder().encode(data) : data;
-                        const ciphertext = await window.crypto.subtle.encrypt({ name: "AES-GCM", iv: iv, tagLength: 128 }, key, encodedData);
-                        const combined = new Uint8Array(salt.length + iv.length + ciphertext.byteLength);
-                        combined.set(salt, 0); combined.set(iv, salt.length); combined.set(new Uint8Array(ciphertext), salt.length + iv.length);
-                        return vaultApp.cryptoCore.bufferToBase64(combined);
-                    },
-                    decryptSingle: async (base64Ciphertext, password, outputType = 'text') => {
-                        const combined = vaultApp.cryptoCore.base64ToBuffer(base64Ciphertext);
-                        if (combined.length < 28) throw new Error("Ciphertext tidak valid atau korup.");
-                        const salt = combined.slice(0, 16);
-                        const iv = combined.slice(16, 28);
-                        const ciphertext = combined.slice(28);
-                        const key = await vaultApp.cryptoCore.getKey(password, salt);
-                        const decrypted = await window.crypto.subtle.decrypt({ name: "AES-GCM", iv: iv, tagLength: 128 }, key, ciphertext);
-                        if (outputType === 'text') {
-                            return new TextDecoder().decode(decrypted);
-                        }
-                        return decrypted;
-                    },
-                    encryptDuress: async (realText, mainPassword, decoyText, duressPassword) => {
-                        const realCipher = await vaultApp.cryptoCore.encryptSingle(realText, mainPassword);
-                        const decoyCipher = await vaultApp.cryptoCore.encryptSingle(decoyText, duressPassword);
-                        const payload = { v: 7.3, main: realCipher, decoy: decoyCipher };
-                        return vaultApp.cryptoCore.bufferToBase64(new TextEncoder().encode(JSON.stringify(payload)));
-                    },
-                    decryptDuress: async (structuredCipher, passwordAttempt) => {
-                        let payload;
-                        try {
-                            const payloadStr = new TextDecoder().decode(vaultApp.cryptoCore.base64ToBuffer(structuredCipher));
-                            payload = JSON.parse(payloadStr);
-                            if (!payload.v || !payload.main || !payload.decoy) throw new Error("Invalid Duress Structure");
-                        } catch (e) {
-                            const mainText = await vaultApp.cryptoCore.decryptSingle(structuredCipher, passwordAttempt, 'text');
-                            return { text: mainText, type: 'main' };
-                        }
-                        try {
-                            const decoyText = await vaultApp.cryptoCore.decryptSingle(payload.decoy, passwordAttempt, 'text');
-                            return { text: decoyText, type: 'decoy' };
-                        } catch (e) {
-                            try {
-                                const mainText = await vaultApp.cryptoCore.decryptSingle(payload.main, passwordAttempt, 'text');
-                                return { text: mainText, type: 'main' };
-                            } catch (e2) {
-                                throw new Error("Password tidak cocok untuk pesan utama maupun pesan panik.");
-                            }
-                        }
-                    }
-                },
+async function decryptText(base64Data, password, iterations){
+  const combined = base64ToBuffer(base64Data);
+  if (combined.length < 16 + 12 + 1) throw new Error('Data tidak valid atau terpotong.');
+  const salt = combined.slice(0,16);
+  const iv = combined.slice(16,28);
+  const ciphertext = combined.slice(28);
+  const key = await deriveKey(password, salt, iterations);
+  const plainBuffer = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: iv }, key, ciphertext);
+  const dec = new TextDecoder();
+  return dec.decode(plainBuffer);
+}
 
-                modules: {},
+/* UI wiring */
+$('encryptBtn').addEventListener('click', async () => {
+  const pt = $('plaintext').value;
+  const pw = $('password').value;
+  const iter = parseInt($('iter').value, 10) || 250000;
+  if (!pt) return status('Isi plaintext dulu.');
+  if (!pw) return status('Password wajib diisi untuk enkripsi.');
+  try {
+    status('Mengenkripsi...');
+    const out = await encryptText(pt, pw, iter);
+    $('ciphertext').value = out;
+    status('Selesai — ciphertext siap.');
+  } catch (e) {
+    console.error(e);
+    status('Enkripsi gagal: ' + (e.message || e));
+  }
+});
 
-                init() {
-                     const allIds = Array.from(document.querySelectorAll('[id]'));
-                    allIds.forEach(el => {
-                        const camelCaseId = el.id.replace(/-([a-z])/g, g => g[1].toUpperCase());
-                        this.els[camelCaseId] = el;
-                    });
-                    this.defineModules();
-                    Object.values(this.modules).forEach(module => {
-                        try {
-                            module.init.call(this);
-                        } catch (e) {
-                            console.error(`Error initializing module "${module.name}":`, e);
-                        }
-                    });
-                    console.log("OBSIDIAN-Vault v7.3.1: All systems initialized and ready.");
-                    this.showMessage("OBSIDIAN-Vault v7.3.1 siap digunakan.", "success", 2500);
-                },
+$('decryptBtn').addEventListener('click', async () => {
+  const ct = $('ciphertext').value.trim();
+  const pw = $('decryptPassword').value || $('password').value;
+  const iter = parseInt($('iter').value, 10) || 250000;
+  if (!ct) return status('Masukkan ciphertext untuk didekripsi.');
+  if (!pw) return status('Password wajib diisi untuk dekripsi.');
+  try {
+    status('Mendekripsi...');
+    const pt = await decryptText(ct, pw, iter);
+    $('plaintext').value = pt;
+    status('Dekripsi berhasil.');
+  } catch (e) {
+    console.error(e);
+    status('Dekripsi gagal: Password salah atau data korup.');
+  }
+});
 
-                defineModules() {
-                    // ... (all other modules are defined here as before) ...
-                    this.modules.standardCipher = {
-                        name: "Standard Cipher",
-                        init() {
-                             const { inputText, password, duressToggle, duressProtocol, duressPassword, decoyMessage, encodeButton, decodeButton, resetButton, outputResult, qrOutputBtn, copyOutputBtn, downloadOutputBtn, qrModal, qrCodeContainer, closeQrModal } = this.els;
-                             // QR Code button logic is the part that needs the fix.
-                             qrOutputBtn.addEventListener('click', () => {
-                                const text = outputResult.textContent;
-                                if (!text) return this.showMessage("Tidak ada hasil untuk QR Code.", "error");
-                                
-                                // This check will now pass because we are loading from CDN
-                                if (typeof qrcodegen === 'undefined') {
-                                    return this.showMessage("Library QR Code gagal dimuat.", "error");
-                                }
+$('copyCipherBtn').addEventListener('click', async () => {
+  const text = $('ciphertext').value;
+  if (!text) return status('Tidak ada ciphertext untuk disalin.');
+  try {
+    if (navigator.clipboard) await navigator.clipboard.writeText(text);
+    else { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+    status('Ciphertext tersalin.');
+  } catch { status('Gagal menyalin.'); }
+});
 
-                                qrCodeContainer.innerHTML = '';
-                                try {
-                                    const qr = qrcodegen.QrCode.encodeText(text, qrcodegen.QrCode.Ecc.MEDIUM);
-                                    const canvas = document.createElement('canvas');
-                                    const scale = (qr.size > 100) ? 2 : 4; 
-                                    canvas.width = qr.size * scale;
-                                    canvas.height = qr.size * scale;
-                                    const ctx = canvas.getContext("2d");
-                                    for (let y = 0; y < qr.size; y++) {
-                                        for (let x = 0; x < qr.size; x++) {
-                                            if (qr.getModule(x, y)) {
-                                                ctx.fillStyle = "#000000";
-                                                ctx.fillRect(x * scale, y * scale, scale, scale);
-                                            }
-                                        }
-                                    }
-                                    qrCodeContainer.appendChild(canvas);
-                                    qrModal.style.display = 'block';
-                                } catch (e) {
-                                    this.showMessage(`Gagal membuat QR Code: ${e.message}. Data mungkin terlalu panjang.`, "error");
-                                }
-                            });
+$('copyPlainBtn').addEventListener('click', async () => {
+  const text = $('plaintext').value;
+  if (!text) return status('Tidak ada plaintext untuk disalin.');
+  try {
+    if (navigator.clipboard) await navigator.clipboard.writeText(text);
+    else { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+    status('Plaintext tersalin.');
+  } catch { status('Gagal menyalin.'); }
+});
 
-                            // Rest of the standardCipher init logic remains the same
-                            duressToggle.addEventListener('click', () => { this.state.isDuressActive = !this.state.isDuressActive; duressProtocol.classList.toggle('active', this.state.isDuressActive); duressToggle.textContent = this.state.isDuressActive ? '[-] Nonaktifkan Duress Protocol' : '[+] Aktifkan Duress Protocol'; duressToggle.style.color = this.state.isDuressActive ? 'var(--danger-color)' : 'var(--warning-color)'; });
-                            encodeButton.addEventListener('click', async () => { if (!inputText.value || !password.value) return this.showMessage("Teks dan Password Utama tidak boleh kosong.", "error"); this.showLoading(outputResult); try { let finalCipher; if (this.state.isDuressActive) { if (!duressPassword.value || !decoyMessage.value) throw new Error("Password Panik dan Pesan Palsu wajib diisi."); if (password.value === duressPassword.value) throw new Error("Password Utama dan Password Panik harus berbeda."); finalCipher = await this.cryptoCore.encryptDuress(inputText.value, password.value, decoyMessage.value, duressPassword.value); } else { finalCipher = await this.cryptoCore.encryptSingle(inputText.value, password.value); } this.hideLoading(outputResult); outputResult.textContent = finalCipher; this.showMessage("Enkripsi berhasil.", "success"); } catch (e) { this.hideLoading(outputResult); outputResult.textContent = ''; this.showMessage(`Error Enkripsi: ${e.message}`, 'error'); } });
-                            decodeButton.addEventListener('click', async () => { if (!inputText.value || !password.value) return this.showMessage("Ciphertext dan password tidak boleh kosong.", "error"); this.showLoading(outputResult); try { const result = await this.cryptoCore.decryptDuress(inputText.value, password.value); this.hideLoading(outputResult); this.animateDecryption(outputResult, result.text); this.showMessage(result.type === 'decoy' ? "Dekripsi berhasil (Pesan Panik Terdeteksi!)" : "Dekripsi berhasil (Pesan Utama)", result.type === 'decoy' ? 'warning' : 'success'); } catch (e) { this.hideLoading(outputResult); outputResult.textContent = ''; this.showMessage(`Error Dekripsi: ${e.message}`, 'error'); } });
-                            resetButton.addEventListener('click', () => { inputText.value = ''; password.value = ''; duressPassword.value = ''; decoyMessage.value = ''; outputResult.textContent = ''; this.showMessage("Input telah dihapus.", "info"); });
-                            copyOutputBtn.addEventListener('click', (e) => this.copyToClipboard(outputResult.textContent, e.target));
-                            downloadOutputBtn.addEventListener('click', () => { const text = outputResult.textContent; if (!text) return this.showMessage("Tidak ada hasil untuk diunduh.", "error"); const blob = new Blob([text], { type: 'text/plain' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'obsidian-vault-cipher.txt'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); });
-                            closeQrModal.addEventListener('click', () => qrModal.style.display = 'none'); qrModal.addEventListener('click', (e) => { if (e.target === qrModal) qrModal.style.display = 'none'; });
-                        }
-                    };
+$('clearCipherBtn').addEventListener('click', ()=> { $('ciphertext').value = ''; status('Ciphertext dibersihkan.'); });
 
-                    this.modules.aegisProtocol = {
-                        name: "Aegis Protocol",
-                        init() {
-                            const { aegisInput, aegisStyle, aegisPassword, aegisApiKey, aegisGenerateAndEncryptButton, aegisDecryptButton, aegisResetButton, aegisOutput, copyAegisBtn } = this.els;
+$('genBtn').addEventListener('click', ()=> {
+  // generate random password (human-unfriendly but strong)
+  const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;:,.<>?';
+  let pw = '';
+  for (let i=0;i<24;i++) pw += charset.charAt(Math.floor(Math.random()*charset.length));
+  $('password').value = pw;
+  $('decryptPassword').value = pw;
+  status('Password random di-generate (24 chars). Simpan di tempat aman.');
+});
 
-                            aegisGenerateAndEncryptButton.addEventListener('click', async () => {
-                                const secretMessage = aegisInput.value;
-                                const narrativeStyle = aegisStyle.value;
-                                const password = aegisPassword.value;
-                                const userApiKey = aegisApiKey.value;
-
-                                if (!secretMessage || !narrativeStyle || !password || !userApiKey) {
-                                    this.showMessage("Semua kolom di Aegis Protocol (termasuk API Key) wajib diisi.", "error");
-                                    return;
-                                }
-
-                                this.showLoading(aegisOutput);
-                                aegisOutput.textContent = '';
-                                const prompt = `Anda adalah seorang penulis sastra yang ahli dalam merangkai kata puitis dan romantis. Tugas Anda adalah mengubah sebuah 'pesan rahasia' menjadi sebuah narasi atau puisi yang indah, simbolis, dan penuh emosi. Narasi yang Anda hasilkan harus secara tersirat menyembunyikan makna inti dari pesan rahasia tersebut menggunakan metafora tentang cinta, kehilangan, kerajaan, kehormatan, atau alam. Jangan pernah menyebutkan pesan rahasia secara langsung di dalam hasil akhir.\n\nPesan Rahasia: "${secretMessage}"\n\nGaya Narasi yang Diinginkan: "${narrativeStyle}"\n\nSekarang, tuliskan narasi puitis Anda:`;
-                                
-                                try {
-                                    let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
-                                    const payload = { contents: chatHistory };
-                                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${userApiKey}`;
-                                    
-                                    const response = await fetch(apiUrl, {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify(payload)
-                                    });
-
-                                    if (!response.ok) {
-                                        const errorData = await response.json();
-                                        throw new Error(errorData.error ? errorData.error.message : `HTTP error! Status: ${response.status}`);
-                                    }
-
-                                    const result = await response.json();
-                                    
-                                    if (!result.candidates?.[0]?.content?.parts?.[0]?.text) {
-                                         throw new Error("Respon dari AI tidak valid atau kosong.");
-                                    }
-                                    const generatedPoem = result.candidates[0].content.parts[0].text.trim();
-                                    
-                                    const ciphertext = await this.cryptoCore.encryptSingle(generatedPoem, password);
-
-                                    this.hideLoading(aegisOutput);
-                                    aegisOutput.textContent = ciphertext;
-                                    this.showMessage("Narasi berhasil dibuat & dienkripsi!", "success");
-
-                                } catch (error) {
-                                    console.error("Aegis Protocol Error:", error);
-                                    this.hideLoading(aegisOutput);
-                                    aegisOutput.textContent = 'Gagal menghasilkan atau mengenkripsi narasi. Cek API Key atau coba lagi.';
-                                    this.showMessage(`Error: ${error.message}`, "error");
-                                }
-                            });
-
-                            aegisDecryptButton.addEventListener('click', async () => {
-                                const ciphertext = aegisOutput.textContent;
-                                const password = aegisPassword.value;
-
-                                if (!ciphertext || !password) {
-                                    this.showMessage("Tempel Ciphertext di area hasil dan masukkan Password Aegis.", "error");
-                                    return;
-                                }
-                                
-                                this.showLoading(aegisOutput);
-                                try {
-                                    const decryptedPoem = await this.cryptoCore.decryptSingle(ciphertext, password, 'text');
-                                    this.hideLoading(aegisOutput);
-                                    this.animateDecryption(aegisOutput, decryptedPoem);
-                                    this.showMessage("Dekripsi narasi berhasil.", "success");
-                                } catch(e) {
-                                    this.hideLoading(aegisOutput);
-                                    aegisOutput.textContent = ciphertext;
-                                    this.showMessage("Gagal dekripsi: Password salah atau data korup.", "error");
-                                }
-                            });
-                            
-                            aegisResetButton.addEventListener('click', () => {
-                                aegisInput.value = '';
-                                aegisStyle.value = '';
-                                aegisPassword.value = '';
-                                aegisApiKey.value = '';
-                                aegisOutput.textContent = 'Hasil narasi terenkripsi atau teks terdekripsi akan muncul di sini. Untuk dekripsi, tempel cipher di sini.';
-                                this.showMessage("Area Aegis Protocol telah dihapus.", "info");
-                            });
-
-                            copyAegisBtn.addEventListener('click', (e) => this.copyToClipboard(aegisOutput.textContent, e.target));
-                        }
-                    };
-                }
-            };
-            vaultApp.init();
-        });
-    </script>
+/* detect crypto */
+if (!window.crypto || !crypto.subtle) {
+  status('Warning: Web Crypto API tidak tersedia di browser ini — enkripsi tidak didukung.');
+  document.querySelectorAll('button,textarea,input').forEach(el=>el.disabled=true);
+} else {
+  status('Ready.');
+}
+</script>
 </body>
 </html>
